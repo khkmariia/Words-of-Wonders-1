@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Words of Wonders</title>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:30px 18px;display:flex;justify-content:center;align-items:center;background:#0b1019;color:#f1f0f5;font-family:"Segoe UI",sans-serif}
+.container{width:100%;max-width:1000px}
+.game-header{text-align:center;margin-bottom:35px}
+.brand-icon{width:43px;height:43px;margin:0 auto 13px;display:flex;justify-content:center;align-items:center;border:1px solid #c9f36a;border-radius:13px;color:#c9f36a;font-size:19px;font-weight:800;transform:rotate(-8deg);box-shadow:0 0 25px #c9f36a20}
+.brand-icon span{color:#f1f0f5}
+.game-header h1{margin:0;color:#f4f2ec;font:800 clamp(29px,5vw,49px) "Segoe UI",sans-serif;letter-spacing:3px;text-shadow:0 0 30px #c9f36a15}
+.game-header h1 span{color:#c9f36a;font-family:Georgia,serif;font-style:italic}
+.game-header p{margin:12px 0 0;color:#8592a9;font-size:9px;letter-spacing:4px}
+.workspace{display:grid;grid-template-columns:1fr 260px;gap:18px}
+.panel{padding:25px;border:1px solid #354158;border-radius:23px;background:linear-gradient(145deg,#192437,#111a29);box-shadow:0 18px 50px #0005}
+.progress-info{display:flex;justify-content:space-between;margin-bottom:9px;color:#929db0;font-size:12px}
+#progressPercent{color:#c9f36a}
+.progress-track{height:7px;margin-bottom:23px;background:#303c50;border-radius:20px;overflow:hidden}
+.progress-bar{width:0;height:100%;background:linear-gradient(90deg,#9bc94b,#d9ff83);border-radius:20px;box-shadow:0 0 12px #c9f36a55;transition:.4s}
+.word-card{position:relative;min-height:255px;padding:25px 15px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;text-align:center;border:1px solid #596078;border-radius:22px;background:radial-gradient(ellipse at 50% 0%,#48516a 0%,transparent 65%),linear-gradient(145deg,#30394e,#202a3e);box-shadow:inset 0 1px 0 #ffffff12;cursor:pointer;transition:.3s}
+.word-card::before{content:"01";position:absolute;right:15px;bottom:-50px;color:#ffffff09;font:900 170px "Segoe UI",sans-serif;pointer-events:none}
+.word-card:hover{border-color:#c9f36a80;box-shadow:0 10px 35px #0003,0 0 20px #c9f36a10;transform:translateY(-4px)}
+.word{z-index:1;margin:0 0 10px;color:#f8f5ed;font:normal 52px Georgia,serif;text-shadow:0 5px 20px #0004;overflow-wrap:anywhere}
+.transcription{z-index:1;margin-bottom:12px;color:#c2c9d6;font-size:13px;letter-spacing:1px}
+.hint{z-index:1;margin-top:5px;color:#a0abc0;font-size:12px}
+.input-title{margin:23px 0 10px;color:#9ca8ba;font-size:10px;letter-spacing:1.5px}
+.input-area{display:flex;gap:10px}
+#answer{flex:1;width:100%;min-width:0;padding:15px 17px;border-radius:13px;background:#0d1624;border:1px solid #39465d;outline:none;color:white;font:inherit;transition:.25s}
+#answer:focus{border-color:#c9f36a;box-shadow:0 0 0 4px #c9f36a15}
+#answer::placeholder{color:#65738a}
+button{font-family:inherit}
+.action-button{padding:14px 23px;border:0;border-radius:13px;background:linear-gradient(135deg,#d9ff83,#a9db58);color:#17202a;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 5px 18px #c9f36a20;transition:.25s}
+.action-button:hover{background:linear-gradient(135deg,#e8ffb5,#c9f36a);box-shadow:0 7px 25px #c9f36a35;transform:translateY(-3px)}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.feedback{min-height:22px;margin-top:13px;font-size:13px}
+.correct{color:#c9f36a}
+.incorrect{color:#ff8c83}
+.controls{display:flex;justify-content:flex-end;margin-top:7px}
+.secondary-button{padding:10px 16px;border:1px solid #39465d;border-radius:12px;background:#202b3e;color:#a3aec0;cursor:pointer;font-size:12px;transition:.25s}
+.secondary-button:hover{background:#30394a;border-color:#ff8c83;color:#ff8c83}
+.side-panel{display:flex;flex-direction:column}
+.side-title{margin:0 0 15px;color:#eeeaf0;font:normal 29px Georgia,serif}
+.stat{margin-bottom:12px;padding:17px;border:1px solid #344158;border-radius:14px;background:#1c293b;transition:.25s}
+.stat:hover{border-color:#71804f;transform:translateX(3px)}
+.stat-number{color:#c9f36a;font:38px Georgia,serif}
+.stat-label{margin-top:5px;color:#8995a9;font-size:10px;letter-spacing:1.2px;line-height:1.6;text-transform:uppercase}
+.note{margin-top:15px;padding:17px;border:1px solid #354158;border-radius:14px;background:#202b3e;color:#8995a9;font-size:12px;line-height:1.7}
+.note strong{color:#c9f36a;font-size:10px;letter-spacing:1px}
+.modal{position:fixed;inset:0;z-index:5;display:none;justify-content:center;align-items:center;padding:20px;background:#050912d9;backdrop-filter:blur(8px)}
+.modal-box{width:100%;max-width:400px;padding:32px 25px;border:1px solid #63704d;border-radius:24px;background:radial-gradient(ellipse at top,#303d43,transparent 65%),#182235;text-align:center;box-shadow:0 20px 80px #0009,0 0 30px #c9f36a10}
+.modal-label{color:#c9f36a;font-size:10px;letter-spacing:2px}
+.modal-box h2{color:#f0edf3;font:normal 28px Georgia,serif}
+.modal-score{margin:18px 0;color:#c9f36a;font:65px Georgia,serif;text-shadow:0 0 25px #c9f36a35}
+.modal-box p{color:#a5afc0;font-size:14px;line-height:1.7}
+.restart-button{margin-top:12px}
+@media(max-width:700px){body{padding:20px 12px}.workspace{grid-template-columns:1fr}.side-panel{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.side-title,.note{grid-column:1/-1}.stat{padding:12px;margin:0}.stat-number{font-size:32px}}
+@media(max-width:430px){.game-header h1{letter-spacing:1px}.game-header p{letter-spacing:2px}.panel{padding:16px}.word{font-size:39px}.input-area{flex-direction:column}.action-button{width:100%}}
+</style>
+</head>
+<body>
+<div class="container">
+    <header class="game-header">
+        <div class="brand-icon">W<span>W</span></div>
+        <h1>WORDS <span>OF</span> WONDERS</h1>
+        <p>THE ART OF LEARNING WORDS</p>
+    </header>
+    <main class="workspace">
+        <section class="panel">
+            <div class="progress-info">
+                <span id="progressText">Word 1 of 15</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <section class="word-card" id="wordCard">
+                <h2 class="word" id="word">apple</h2>
+                <div class="transcription" id="transcription">/ˈæp.əl/</div>
+                <div class="hint">Click the card to check your answer ↗</div>
+            </section>
+            <form id="answerForm">
+                <div class="input-title">YOUR TRANSLATION</div>
+                <div class="input-area">
+                    <input id="answer" type="text" placeholder="Enter the translation..." autocomplete="off" required>
+                    <button class="action-button" type="submit" id="checkButton">Check</button>
+                </div>
+            </form>
+            <div class="feedback" id="feedback" aria-live="polite"></div>
+            <div class="controls">
+                <button class="secondary-button" id="skipButton" type="button">Skip word</button>
+            </div>
+        </section>
+        <aside class="panel side-panel">
+            <h2 class="side-title">Your progress.</h2>
+            <div class="stat">
+                <div class="stat-number" id="correctCount">0</div>
+                <div class="stat-label">Correct answers</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="wrongCount">0</div>
+                <div class="stat-label">Wrong answers</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="accuracy">0%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="note">
+                <strong>* LITTLE REMINDER</strong>
+                <p>Every new word is another opportunity to discover something new.</p>
+            </div>
+        </aside>
+    </main>
+</div>
+<div class="modal" id="resultModal">
+    <div class="modal-box">
+        <div class="modal-label">SESSION COMPLETED</div>
+        <h2>Your result</h2>
+        <div class="modal-score" id="finalScore">0%</div>
+        <p id="resultMessage"></p>
+        <button class="action-button restart-button" id="restartButton" type="button">Try again</button>
+    </div>
+</div>
+<script>
+$(document).ready(function(){
+    const wordBank=[
+        {word:"apple",translation:"яблуко",transcription:"/ˈæp.əl/"},
+        {word:"house",translation:"будинок",transcription:"/haʊs/"},
+        {word:"happy",translation:"щасливий",transcription:"/ˈhæpi/"},
+        {word:"friend",translation:"друг",transcription:"/frend/"},
+        {word:"water",translation:"вода",transcription:"/ˈwɔːtər/"},
+        {word:"improve",translation:"покращувати",transcription:"/ɪmˈpruːv/"},
+        {word:"suggest",translation:"пропонувати",transcription:"/səˈdʒest/"},
+        {word:"avoid",translation:"уникати",transcription:"/əˈvɔɪd/"},
+        {word:"confident",translation:"впевнений",transcription:"/ˈkɒnfɪdənt/"},
+        {word:"choice",translation:"вибір",transcription:"/tʃɔɪs/"},
+        {word:"petrichor",translation:"запах землі після дощу",transcription:"/ˈpetrɪkɔːr/"},
+        {word:"mysterious",translation:"загадковий",transcription:"/mɪˈstɪəriəs/"},
+        {word:"serendipity",translation:"щаслива випадковість",transcription:"/ˌserənˈdɪpəti/"},
+        {word:"ambitious",translation:"амбіційний",transcription:"/æmˈbɪʃəs/"},
+        {word:"ethereal",translation:"неземний",transcription:"/ɪˈθɪəriəl/"}
+    ];
+    let words=[],currentIndex=0,correct=0,wrong=0,locked=false,advanceTimer;
+    function shuffle(array){
+        for(let i=array.length-1;i>0;i--){
+            const j=Math.floor(Math.random()*(i+1));
+            [array[i],array[j]]=[array[j],array[i]];
+        }
+        return array;
+    }
+    function startTest(){
+        clearTimeout(advanceTimer);
+        words=shuffle(wordBank.slice());
+        currentIndex=correct=wrong=0;
+        locked=false;
+        $("#resultModal").hide();
+        updateStats();
+        showWord();
+    }
+    function showWord(){
+        const item=words[currentIndex];
+        if(!item)return finishTest();
+        locked=false;
+        $("#word").text(item.word);
+        $("#transcription").text(item.transcription);
+        $("#progressText").text("Word "+(currentIndex+1)+" of "+words.length);
+        const percent=Math.round(currentIndex/words.length*100);
+        $("#progressPercent").text(percent+"%");
+        $("#progressBar").css("width",percent+"%");
+        $("#feedback").removeClass("correct incorrect").text("");
+        $("#answer").val("").prop("disabled",false).trigger("focus");
+        $("#checkButton,#skipButton").prop("disabled",false);
+    }
+    function updateStats(){
+        const total=correct+wrong;
+        $("#correctCount").text(correct);
+        $("#wrongCount").text(wrong);
+        $("#accuracy").text(total?Math.round(correct/total*100)+"%":"0%");
+    }
+    function moveNext(){
+        currentIndex++;
+        currentIndex<words.length?showWord():finishTest();
+    }
+    function checkAnswer(event){
+        if(event)event.preventDefault();
+        if(locked)return;
+        const userAnswer=$("#answer").val().trim().toLowerCase();
+        if(!userAnswer){
+            $("#feedback").removeClass("correct").addClass("incorrect").text("Please enter a translation first.");
+            return;
+        }
+        locked=true;
+        const item=words[currentIndex];
+        if(userAnswer===item.translation.toLowerCase()){
+            correct++;
+            $("#feedback").removeClass("incorrect").addClass("correct").text("✓ Excellent! Correct answer.");
+        }else{
+            wrong++;
+            $("#feedback").removeClass("correct").addClass("incorrect").text("✕ Incorrect! Correct answer: "+item.translation);
+        }
+        $("#answer,#checkButton,#skipButton").prop("disabled",true);
+        updateStats();
+        advanceTimer=setTimeout(moveNext,1100);
+    }
+    function skipWord(){
+        if(locked)return;
+        locked=true;
+        wrong++;
+        updateStats();
+        $("#feedback").removeClass("correct").addClass("incorrect").text("Word skipped. Correct answer: "+words[currentIndex].translation);
+        $("#answer,#checkButton,#skipButton").prop("disabled",true);
+        advanceTimer=setTimeout(moveNext,1100);
+    }
+    function finishTest(){
+        clearTimeout(advanceTimer);
+        locked=true;
+        $("#progressText").text("All words completed");
+        $("#progressPercent").text("100%");
+        $("#progressBar").css("width","100%");
+        $("#answer,#checkButton,#skipButton").prop("disabled",true);
+        const total=correct+wrong;
+        const percent=total?Math.round(correct/total*100):0;
+        const message=percent>=85?"Excellent! You have a great knowledge of English vocabulary.":percent>=60?"Good job! Keep learning and improving your vocabulary.":"Keep going! Review the words and try again.";
+        $("#finalScore").text(percent+"%");
+        $("#resultMessage").text("Correct answers: "+correct+" out of "+total+". "+message);
+        $("#resultModal").css("display","flex");
+    }
+    $("#answerForm").on("submit",checkAnswer);
+    $("#wordCard").on("click",checkAnswer);
+    $("#skipButton").on("click",skipWord);
+    $("#restartButton").on("click",startTest);
+    $("#resultModal").on("click",function(event){
+        if(event.target===this)$(this).hide();
+    });
+    startTest();
+});
+</script>
+</body>
+</html>
